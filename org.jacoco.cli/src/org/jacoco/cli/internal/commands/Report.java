@@ -27,6 +27,7 @@ import org.jacoco.core.analysis.CoverageBuilder;
 import org.jacoco.core.analysis.IBundleCoverage;
 import org.jacoco.core.analysis.IClassCoverage;
 import org.jacoco.core.data.ExecutionDataStore;
+import org.jacoco.core.internal.diff.JsonReadUtil;
 import org.jacoco.core.tools.ExecFileLoader;
 import org.jacoco.report.DirectorySourceFileLocator;
 import org.jacoco.report.FileMultiReportOutput;
@@ -72,6 +73,14 @@ public class Report extends Command {
 	@Option(name = "--html", usage = "output directory for the HTML report", metaVar = "<dir>")
 	File html;
 
+	// create by xulingjian 2024-10-21
+	@Option(name = "--diffCode", usage = "input String for diff", metaVar = "<file>")
+	String diffCode;
+
+	// create by xulingjian 2024-10-21
+	@Option(name = "--diffCodeFiles", usage = "input file for diff", metaVar = "<path>")
+	String diffCodeFiles;
+
 	@Override
 	public String description() {
 		return "Generate reports in different formats by reading exec and Java class files.";
@@ -102,10 +111,32 @@ public class Report extends Command {
 		return loader;
 	}
 
+	// private IBundleCoverage analyze(final ExecutionDataStore data,
+	// final PrintWriter out) throws IOException {
+	// final CoverageBuilder builder = new CoverageBuilder();
+	// final Analyzer analyzer = new Analyzer(data, builder);
+	// for (final File f : classfiles) {
+	// analyzer.analyzeAll(f);
+	// }
+	// printNoMatchWarning(builder.getNoMatchClasses(), out);
+	// return builder.getBundle(name);
+	// }
+
+	// create by xulingjian 2024-10-21
 	private IBundleCoverage analyze(final ExecutionDataStore data,
 			final PrintWriter out) throws IOException {
-		final CoverageBuilder builder = new CoverageBuilder();
+		CoverageBuilder builder;
+		// 如果有增量参数将其设置进去
+		if (null != this.diffCodeFiles) {
+			builder = new CoverageBuilder(
+					JsonReadUtil.readJsonToString(this.diffCodeFiles));
+		} else if (null != this.diffCode) {
+			builder = new CoverageBuilder(this.diffCode);
+		} else {
+			builder = new CoverageBuilder();
+		}
 		final Analyzer analyzer = new Analyzer(data, builder);
+		// class类用于类方法的比较，源码只用于最后的着色
 		for (final File f : classfiles) {
 			analyzer.analyzeAll(f);
 		}

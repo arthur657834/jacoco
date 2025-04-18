@@ -12,6 +12,11 @@
  *******************************************************************************/
 package org.jacoco.core.internal.flow;
 
+import java.util.List;
+
+import org.jacoco.core.internal.analysis.ClassAnalyzer;
+import org.jacoco.core.internal.diff.ClassInfoDto;
+import org.jacoco.core.internal.diff.CodeDiffUtil;
 import org.jacoco.core.internal.instr.InstrSupport;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
@@ -66,9 +71,21 @@ public class ClassProbesAdapter extends ClassVisitor
 		final MethodProbesVisitor mv = cv.visitMethod(access, name, desc,
 				signature, exceptions);
 		if (mv == null) {
-			// We need to visit the method in any case, otherwise probe ids
-			// are not reproducible
-			methodProbes = EMPTY_METHOD_PROBES_VISITOR;
+			List<ClassInfoDto> classInfos = null;
+			if (cv instanceof ClassAnalyzer) {
+				classInfos = ((ClassAnalyzer) cv).getClassInfos();
+			}
+			// 增量代码，有点绕，由于参数定义成final,无法第二次指定,代码无法简化
+			if (null != classInfos && !classInfos.isEmpty()) {
+				if (CodeDiffUtil.checkMethodIn(this.name, name, desc,
+						classInfos)) {
+					methodProbes = mv;
+				} else {
+					methodProbes = EMPTY_METHOD_PROBES_VISITOR;
+				}
+			} else {
+				methodProbes = mv;
+			}
 		} else {
 			methodProbes = mv;
 		}

@@ -16,12 +16,17 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.jacoco.core.internal.analysis.BundleCoverageImpl;
 import org.jacoco.core.internal.analysis.ClassCoverageImpl;
 import org.jacoco.core.internal.analysis.SourceFileCoverageImpl;
 import org.jacoco.core.internal.analysis.SourceNodeImpl;
+import org.jacoco.core.internal.diff.ClassInfoDto;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 /**
  * Builder for hierarchical {@link ICoverageNode} structures from single
@@ -43,13 +48,37 @@ public class CoverageBuilder implements ICoverageVisitor {
 
 	private Map<String, ISourceFileCoverage> sourcefiles;
 
+	// create by xulingjian 2024-10-21
+	public List<ClassInfoDto> classInfos;
+
 	/**
 	 * Create a new builder.
-	 *
 	 */
 	public CoverageBuilder() {
 		this.classes = new HashMap<String, IClassCoverage>();
 		this.sourcefiles = new HashMap<String, ISourceFileCoverage>();
+	}
+
+	// create by xulingjian 2024-10-21
+	public CoverageBuilder(String classList) {
+		this.classes = new HashMap<String, IClassCoverage>();
+		this.sourcefiles = new HashMap<String, ISourceFileCoverage>();
+		if (null != classList && !"".equals(classList)) {
+			Gson gson = new Gson();
+			classInfos = gson.fromJson(classList,
+					new TypeToken<List<ClassInfoDto>>() {
+					}.getType());
+		}
+	}
+
+	// create by xulingjian 2024-10-21
+	public List<ClassInfoDto> getClassInfos() {
+		return classInfos;
+	}
+
+	// create by xulingjian 2024-10-21
+	public void setClassInfos(List<ClassInfoDto> classInfos) {
+		this.classInfos = classInfos;
 	}
 
 	/**
@@ -88,8 +117,8 @@ public class CoverageBuilder implements ICoverageVisitor {
 	/**
 	 * Returns all classes for which execution data does not match.
 	 *
-	 * @see IClassCoverage#isNoMatch()
 	 * @return collection of classes with non-matching execution data
+	 * @see IClassCoverage#isNoMatch()
 	 */
 	public Collection<IClassCoverage> getNoMatchClasses() {
 		final Collection<IClassCoverage> result = new ArrayList<IClassCoverage>();

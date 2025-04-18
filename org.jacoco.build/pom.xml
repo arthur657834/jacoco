@@ -154,6 +154,9 @@
     <!-- See http://jira.codehaus.org/browse/SONAR-2096 -->
     <sonar.java.source>1.5</sonar.java.source>
     <sonar.java.target>1.5</sonar.java.target>
+
+    <!--      create by xulingjian 2024-10-21-->
+    <gson.version>2.13.0</gson.version>
   </properties>
 
   <dependencyManagement>
@@ -248,6 +251,14 @@
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
         <version>${junit.version}</version>
+      </dependency>
+
+      <!--      create by xulingjian 2024-10-21-->
+      <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
+      <dependency>
+        <groupId>com.google.code.gson</groupId>
+        <artifactId>gson</artifactId>
+        <version>${gson.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -450,7 +461,7 @@
         <plugin>
           <groupId>com.diffplug.spotless</groupId>
           <artifactId>spotless-maven-plugin</artifactId>
-          <version>2.44.3</version>
+          <version>2.44.4</version>
        </plugin>
        <plugin>
          <groupId>org.sonarsource.scanner.maven</groupId>

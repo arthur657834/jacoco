@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.StringTokenizer;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
@@ -31,6 +32,8 @@ import org.jacoco.core.internal.analysis.ClassAnalyzer;
 import org.jacoco.core.internal.analysis.ClassCoverageImpl;
 import org.jacoco.core.internal.analysis.StringPool;
 import org.jacoco.core.internal.data.CRC64;
+import org.jacoco.core.internal.diff.ClassInfoDto;
+import org.jacoco.core.internal.diff.CodeDiffUtil;
 import org.jacoco.core.internal.flow.ClassProbesAdapter;
 import org.jacoco.core.internal.instr.InstrSupport;
 import org.objectweb.asm.ClassReader;
@@ -52,6 +55,9 @@ public class Analyzer {
 	private final ICoverageVisitor coverageVisitor;
 
 	private final StringPool stringPool;
+
+	// create by xulingjian 2024-10-21
+	private List<ClassInfoDto> classInfos;
 
 	/**
 	 * Creates a new analyzer reporting to the given output.
@@ -78,11 +84,38 @@ public class Analyzer {
 	 *            VM name of the class
 	 * @return ASM visitor to write class definition to
 	 */
+	// private ClassVisitor createAnalyzingVisitor(final long classid,
+	// final String className) {
+	// final ExecutionData data = executionData.get(classid);
+	// final boolean[] probes;
+	// final boolean noMatch;
+	// if (data == null) {
+	// probes = null;
+	// noMatch = executionData.contains(className);
+	// } else {
+	// probes = data.getProbes();
+	// noMatch = false;
+	// }
+	// final ClassCoverageImpl coverage = new ClassCoverageImpl(className,
+	// classid, noMatch);
+	// final ClassAnalyzer analyzer = new ClassAnalyzer(coverage, probes,
+	// stringPool) {
+	// @Override
+	// public void visitEnd() {
+	// super.visitEnd();
+	// coverageVisitor.visitCoverage(coverage);
+	// }
+	// };
+	// return new ClassProbesAdapter(analyzer, false);
+	// }
+
+	// create by xulingjian 2024-10-21
 	private ClassVisitor createAnalyzingVisitor(final long classid,
 			final String className) {
 		final ExecutionData data = executionData.get(classid);
 		final boolean[] probes;
 		final boolean noMatch;
+		// data为空说明exec文件没有探针信息，说明执行测试的类和进行report的类不一致
 		if (data == null) {
 			probes = null;
 			noMatch = executionData.contains(className);
@@ -93,16 +126,32 @@ public class Analyzer {
 		final ClassCoverageImpl coverage = new ClassCoverageImpl(className,
 				classid, noMatch);
 		final ClassAnalyzer analyzer = new ClassAnalyzer(coverage, probes,
-				stringPool) {
+				stringPool, this.classInfos) {
 			@Override
 			public void visitEnd() {
 				super.visitEnd();
+				// 这里有个模板方法模式的钩子方法，这里先定义，等后面类的方法解析完再调用此方法
 				coverageVisitor.visitCoverage(coverage);
 			}
 		};
 		return new ClassProbesAdapter(analyzer, false);
 	}
 
+	// private void analyzeClass(final byte[] source) {
+	// final long classId = CRC64.classId(source);
+	// final ClassReader reader = InstrSupport.classReaderFor(source);
+	// if ((reader.getAccess() & Opcodes.ACC_MODULE) != 0) {
+	// return;
+	// }
+	// if ((reader.getAccess() & Opcodes.ACC_SYNTHETIC) != 0) {
+	// return;
+	// }
+	// final ClassVisitor visitor = createAnalyzingVisitor(classId,
+	// reader.getClassName());
+	// reader.accept(visitor, 0);
+	// }
+
+	// create by xulingjian 2024-10-21
 	private void analyzeClass(final byte[] source) {
 		final long classId = CRC64.classId(source);
 		final ClassReader reader = InstrSupport.classReaderFor(source);
@@ -112,9 +161,23 @@ public class Analyzer {
 		if ((reader.getAccess() & Opcodes.ACC_SYNTHETIC) != 0) {
 			return;
 		}
+		if (this.coverageVisitor instanceof CoverageBuilder) {
+			this.classInfos = ((CoverageBuilder) this.coverageVisitor)
+					.getClassInfos();
+		}
+		// 字段不为空说明是增量覆盖
+		if (null != this.classInfos && !this.classInfos.isEmpty()) {
+			// 如果没有匹配到增量代码就无需解析类
+			if (!CodeDiffUtil.checkClassIn(reader.getClassName(),
+					this.classInfos)) {
+				return;
+			}
+		}
 		final ClassVisitor visitor = createAnalyzingVisitor(classId,
 				reader.getClassName());
+		// 重点，开始解析类里面的方法，逐个方法遍历
 		reader.accept(visitor, 0);
+
 	}
 
 	/**

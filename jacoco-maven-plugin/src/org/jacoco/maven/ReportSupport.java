@@ -58,6 +58,9 @@ final class ReportSupport {
 	private final ExecFileLoader loader;
 	private final List<IReportVisitor> formatters;
 
+	// create by xulingjian 2024-10-21
+	private String diffMethods;
+
 	/**
 	 * Construct a new instance with the given log output.
 	 *
@@ -68,6 +71,14 @@ final class ReportSupport {
 		this.log = log;
 		this.loader = new ExecFileLoader();
 		this.formatters = new ArrayList<IReportVisitor>();
+	}
+
+	// create by xulingjian 2024-10-21
+	public ReportSupport(final Log log, final String diffMethods) {
+		this.log = log;
+		this.loader = new ExecFileLoader();
+		this.formatters = new ArrayList<IReportVisitor>();
+		this.diffMethods = diffMethods;
 	}
 
 	/**
@@ -150,11 +161,40 @@ final class ReportSupport {
 				new SourceFileCollection(project, srcEncoding));
 	}
 
+	// private void processProject(final IReportGroupVisitor visitor,
+	// final String bundleName, final MavenProject project,
+	// final List<String> includes, final List<String> excludes,
+	// final ISourceFileLocator locator) throws IOException {
+	// final CoverageBuilder builder = new CoverageBuilder();
+	// final File classesDir = new File(
+	// project.getBuild().getOutputDirectory());
+	//
+	// if (classesDir.isDirectory()) {
+	// final Analyzer analyzer = new Analyzer(
+	// loader.getExecutionDataStore(), builder);
+	// final FileFilter filter = new FileFilter(includes, excludes);
+	// for (final File file : filter.getFiles(classesDir)) {
+	// analyzer.analyzeAll(file);
+	// }
+	// }
+	//
+	// final IBundleCoverage bundle = builder.getBundle(bundleName);
+	// logBundleInfo(bundle, builder.getNoMatchClasses());
+	//
+	// visitor.visitBundle(bundle, locator);
+	// }
+
+	// create by xulingjian 2024-10-21
 	private void processProject(final IReportGroupVisitor visitor,
 			final String bundleName, final MavenProject project,
 			final List<String> includes, final List<String> excludes,
 			final ISourceFileLocator locator) throws IOException {
-		final CoverageBuilder builder = new CoverageBuilder();
+		CoverageBuilder builder;
+		if (null != diffMethods && !diffMethods.isEmpty()) {
+			builder = new CoverageBuilder(diffMethods);
+		} else {
+			builder = new CoverageBuilder();
+		}
 		final File classesDir = new File(
 				project.getBuild().getOutputDirectory());
 
