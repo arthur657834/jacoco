@@ -24,6 +24,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.jacoco.core.analysis.ICoverageNode;
+import org.jacoco.core.internal.diff.JsonReadUtil;
 import org.jacoco.report.IReportVisitor;
 import org.jacoco.report.check.IViolationsOutput;
 import org.jacoco.report.check.Limit;
@@ -37,173 +38,180 @@ import org.jacoco.report.check.Rule;
 @Mojo(name = "check", defaultPhase = LifecyclePhase.VERIFY, threadSafe = true)
 public class CheckMojo extends AbstractJacocoMojo implements IViolationsOutput {
 
-	private static final String MSG_SKIPPING = "Skipping JaCoCo execution due to missing execution data file:";
-	private static final String CHECK_SUCCESS = "All coverage checks have been met.";
-	private static final String CHECK_FAILED = "Coverage checks have not been met. See log for details.";
+    private static final String MSG_SKIPPING = "Skipping JaCoCo execution due to missing execution data file:";
+    private static final String CHECK_SUCCESS = "All coverage checks have been met.";
+    private static final String CHECK_FAILED = "Coverage checks have not been met. See log for details.";
 
-	/**
-	 * <p>
-	 * Check configuration used to specify rules on element types (BUNDLE,
-	 * PACKAGE, CLASS, SOURCEFILE or METHOD) with a list of limits. Each limit
-	 * applies to a certain counter (INSTRUCTION, LINE, BRANCH, COMPLEXITY,
-	 * METHOD, CLASS) and defines a minimum or maximum for the corresponding
-	 * value (TOTALCOUNT, COVEREDCOUNT, MISSEDCOUNT, COVEREDRATIO, MISSEDRATIO).
-	 * If a limit refers to a ratio it must be in the range from 0.0 to 1.0
-	 * where the number of decimal places will also determine the precision in
-	 * error messages. A limit ratio may optionally be declared as a percentage
-	 * where 0.80 and 80% represent the same value.
-	 * </p>
-	 *
-	 * <p>
-	 * If not specified the following defaults are assumed:
-	 * </p>
-	 *
-	 * <ul>
-	 * <li>rule element: BUNDLE</li>
-	 * <li>limit counter: INSTRUCTION</li>
-	 * <li>limit value: COVEREDRATIO</li>
-	 * </ul>
-	 *
-	 * <p>
-	 * This example requires an overall instruction coverage of 80% and no class
-	 * must be missed:
-	 * </p>
-	 *
-	 * <pre>
-	 * {@code
-	 * <rules>
-	 *   <rule>
-	 *     <element>BUNDLE</element>
-	 *     <limits>
-	 *       <limit>
-	 *         <counter>INSTRUCTION</counter>
-	 *         <value>COVEREDRATIO</value>
-	 *         <minimum>0.80</minimum>
-	 *       </limit>
-	 *       <limit>
-	 *         <counter>CLASS</counter>
-	 *         <value>MISSEDCOUNT</value>
-	 *         <maximum>0</maximum>
-	 *       </limit>
-	 *     </limits>
-	 *   </rule>
-	 * </rules>}
-	 * </pre>
-	 *
-	 * <p>
-	 * This example requires a line coverage minimum of 50% for every class
-	 * except test classes:
-	 * </p>
-	 *
-	 * <pre>
-	 * {@code
-	 * <rules>
-	 *   <rule>
-	 *     <element>CLASS</element>
-	 *     <excludes>
-	 *       <exclude>*Test</exclude>
-	 *     </excludes>
-	 *     <limits>
-	 *       <limit>
-	 *         <counter>LINE</counter>
-	 *         <value>COVEREDRATIO</value>
-	 *         <minimum>50%</minimum>
-	 *       </limit>
-	 *     </limits>
-	 *   </rule>
-	 * </rules>}
-	 * </pre>
-	 */
-	@Parameter(required = true)
-	private List<RuleConfiguration> rules;
+    /**
+     * <p>
+     * Check configuration used to specify rules on element types (BUNDLE,
+     * PACKAGE, CLASS, SOURCEFILE or METHOD) with a list of limits. Each limit
+     * applies to a certain counter (INSTRUCTION, LINE, BRANCH, COMPLEXITY,
+     * METHOD, CLASS) and defines a minimum or maximum for the corresponding
+     * value (TOTALCOUNT, COVEREDCOUNT, MISSEDCOUNT, COVEREDRATIO, MISSEDRATIO).
+     * If a limit refers to a ratio it must be in the range from 0.0 to 1.0
+     * where the number of decimal places will also determine the precision in
+     * error messages. A limit ratio may optionally be declared as a percentage
+     * where 0.80 and 80% represent the same value.
+     * </p>
+     *
+     * <p>
+     * If not specified the following defaults are assumed:
+     * </p>
+     *
+     * <ul>
+     * <li>rule element: BUNDLE</li>
+     * <li>limit counter: INSTRUCTION</li>
+     * <li>limit value: COVEREDRATIO</li>
+     * </ul>
+     *
+     * <p>
+     * This example requires an overall instruction coverage of 80% and no class
+     * must be missed:
+     * </p>
+     *
+     * <pre>
+     * {@code
+     * <rules>
+     *   <rule>
+     *     <element>BUNDLE</element>
+     *     <limits>
+     *       <limit>
+     *         <counter>INSTRUCTION</counter>
+     *         <value>COVEREDRATIO</value>
+     *         <minimum>0.80</minimum>
+     *       </limit>
+     *       <limit>
+     *         <counter>CLASS</counter>
+     *         <value>MISSEDCOUNT</value>
+     *         <maximum>0</maximum>
+     *       </limit>
+     *     </limits>
+     *   </rule>
+     * </rules>}
+     * </pre>
+     *
+     * <p>
+     * This example requires a line coverage minimum of 50% for every class
+     * except test classes:
+     * </p>
+     *
+     * <pre>
+     * {@code
+     * <rules>
+     *   <rule>
+     *     <element>CLASS</element>
+     *     <excludes>
+     *       <exclude>*Test</exclude>
+     *     </excludes>
+     *     <limits>
+     *       <limit>
+     *         <counter>LINE</counter>
+     *         <value>COVEREDRATIO</value>
+     *         <minimum>50%</minimum>
+     *       </limit>
+     *     </limits>
+     *   </rule>
+     * </rules>}
+     * </pre>
+     */
+    @Parameter(required = true)
+    private List<RuleConfiguration> rules;
 
-	/**
-	 * Halt the build if any of the checks fail.
-	 */
-	@Parameter(property = "jacoco.haltOnFailure", defaultValue = "true", required = true)
-	private boolean haltOnFailure;
+    /**
+     * Halt the build if any of the checks fail.
+     */
+    @Parameter(property = "jacoco.haltOnFailure", defaultValue = "true", required = true)
+    private boolean haltOnFailure;
 
-	/**
-	 * File with execution data.
-	 */
-	@Parameter(defaultValue = "${project.build.directory}/jacoco.exec")
-	private File dataFile;
+    /**
+     * File with execution data.
+     */
+    @Parameter(defaultValue = "${project.build.directory}/jacoco.exec")
+    private File dataFile;
 
-	/**
-	 * A list of class files to include into analysis. May use wildcard
-	 * characters (* and ?). When not specified everything will be included.
-	 */
-	@Parameter
-	private List<String> includes;
+    /**
+     * A list of class files to include into analysis. May use wildcard
+     * characters (* and ?). When not specified everything will be included.
+     */
+    @Parameter
+    private List<String> includes;
 
-	/**
-	 * A list of class files to exclude from analysis. May use wildcard
-	 * characters (* and ?). When not specified nothing will be excluded.
-	 */
-	@Parameter
-	private List<String> excludes;
+    /**
+     * A list of class files to exclude from analysis. May use wildcard
+     * characters (* and ?). When not specified nothing will be excluded.
+     */
+    @Parameter
+    private List<String> excludes;
 
-	private boolean violations;
+    private boolean violations;
 
-	private boolean canCheckCoverage() {
-		if (!dataFile.exists()) {
-			getLog().info(MSG_SKIPPING + dataFile);
-			return false;
-		}
-		final File classesDirectory = new File(
-				getProject().getBuild().getOutputDirectory());
-		if (!classesDirectory.exists()) {
-			getLog().info(
-					"Skipping JaCoCo execution due to missing classes directory:"
-							+ classesDirectory);
-			return false;
-		}
-		return true;
-	}
+    // create by xulingjian 2024-10-21
+    @Parameter(property = "jacoco.diffCodeFile", defaultValue = "${project.basedir}/diffCodeFile.json")
+    String diffCodeFile;
 
-	@Override
-	public void executeMojo() throws MojoExecutionException {
-		if (!canCheckCoverage()) {
-			return;
-		}
-		executeCheck();
-	}
+    private boolean canCheckCoverage() {
+        if (!dataFile.exists()) {
+            getLog().info(MSG_SKIPPING + dataFile);
+            return false;
+        }
+        final File classesDirectory = new File(
+                getProject().getBuild().getOutputDirectory());
+        if (!classesDirectory.exists()) {
+            getLog().info(
+                    "Skipping JaCoCo execution due to missing classes directory:"
+                            + classesDirectory);
+            return false;
+        }
+        return true;
+    }
 
-	private void executeCheck() throws MojoExecutionException {
-		violations = false;
+    @Override
+    public void executeMojo() throws MojoExecutionException {
+        if (!canCheckCoverage()) {
+            return;
+        }
+        executeCheck();
+    }
 
-		final ReportSupport support = new ReportSupport(getLog());
+    private void executeCheck() throws MojoExecutionException {
+        violations = false;
 
-		final List<Rule> checkerrules = new ArrayList<Rule>();
-		for (final RuleConfiguration r : rules) {
-			checkerrules.add(r.rule);
-		}
-		support.addRulesChecker(checkerrules, this);
+//        final ReportSupport support = new ReportSupport(getLog());
 
-		try {
-			final IReportVisitor visitor = support.initRootVisitor();
-			support.loadExecutionData(dataFile);
-			support.processProject(visitor, getProject(), includes, excludes);
-			visitor.visitEnd();
-		} catch (final IOException e) {
-			throw new MojoExecutionException(
-					"Error while checking code coverage: " + e.getMessage(), e);
-		}
-		if (violations) {
-			if (this.haltOnFailure) {
-				throw new MojoExecutionException(CHECK_FAILED);
-			} else {
-				this.getLog().warn(CHECK_FAILED);
-			}
-		} else {
-			this.getLog().info(CHECK_SUCCESS);
-		}
-	}
+        // create by xulingjian 2024-10-21
+        final ReportSupport support = new ReportSupport(getLog(), JsonReadUtil.readJsonToString(this.diffCodeFile));
 
-	public void onViolation(final ICoverageNode node, final Rule rule,
-			final Limit limit, final String message) {
-		this.getLog().warn(message);
-		violations = true;
-	}
+        final List<Rule> checkerrules = new ArrayList<Rule>();
+        for (final RuleConfiguration r : rules) {
+            checkerrules.add(r.rule);
+        }
+        support.addRulesChecker(checkerrules, this);
+
+        try {
+            final IReportVisitor visitor = support.initRootVisitor();
+            support.loadExecutionData(dataFile);
+            support.processProject(visitor, getProject(), includes, excludes);
+            visitor.visitEnd();
+        } catch (final IOException e) {
+            throw new MojoExecutionException(
+                    "Error while checking code coverage: " + e.getMessage(), e);
+        }
+        if (violations) {
+            if (this.haltOnFailure) {
+                throw new MojoExecutionException(CHECK_FAILED);
+            } else {
+                this.getLog().warn(CHECK_FAILED);
+            }
+        } else {
+            this.getLog().info(CHECK_SUCCESS);
+        }
+    }
+
+    public void onViolation(final ICoverageNode node, final Rule rule,
+                            final Limit limit, final String message) {
+        this.getLog().warn(message);
+        violations = true;
+    }
 
 }
