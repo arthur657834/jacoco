@@ -24,6 +24,7 @@ import org.jacoco.core.internal.analysis.filter.IFilter;
 import org.jacoco.core.internal.analysis.filter.IFilterContext;
 import org.jacoco.core.internal.analysis.filter.KotlinSMAP;
 import org.jacoco.core.internal.diff.ClassInfoDto;
+import org.jacoco.core.internal.diff.DiffCodeDto;
 import org.jacoco.core.internal.flow.ClassProbesVisitor;
 import org.jacoco.core.internal.flow.MethodProbesVisitor;
 import org.jacoco.core.internal.instr.InstrSupport;
@@ -55,7 +56,7 @@ public class ClassAnalyzer extends ClassProbesVisitor
     private final IFilter filter;
 
     // create by xulingjian 2024-10-21
-    private List<ClassInfoDto> classInfos;
+    private DiffCodeDto diffCodes;
 
     /**
      * Creates a new analyzer that builds coverage data for a class.
@@ -75,22 +76,22 @@ public class ClassAnalyzer extends ClassProbesVisitor
     // create by xulingjian 2024-10-21
     public ClassAnalyzer(final ClassCoverageImpl coverage,
                          final boolean[] probes, final StringPool stringPool,
-                         List<ClassInfoDto> classInfos) {
+                         DiffCodeDto diffCodes) {
         this.coverage = coverage;
         this.probes = probes;
         this.stringPool = stringPool;
         this.filter = Filters.all();
-        this.classInfos = classInfos;
+        this.diffCodes = diffCodes;
     }
 
     // create by xulingjian 2024-10-21
-    public List<ClassInfoDto> getClassInfos() {
-        return classInfos;
+    public DiffCodeDto getDiffCodes() {
+        return diffCodes;
     }
 
     // create by xulingjian 2024-10-21
-    public void setClassInfos(List<ClassInfoDto> classInfos) {
-        this.classInfos = classInfos;
+    public void setDiffCodes(DiffCodeDto diffCodes) {
+        this.diffCodes = diffCodes;
     }
 
     @Override

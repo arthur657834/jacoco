@@ -27,6 +27,7 @@ import org.jacoco.core.internal.diff.ClassInfoDto;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import org.jacoco.core.internal.diff.DiffCodeDto;
 
 /**
  * Builder for hierarchical {@link ICoverageNode} structures from single
@@ -49,7 +50,7 @@ public class CoverageBuilder implements ICoverageVisitor {
     private Map<String, ISourceFileCoverage> sourcefiles;
 
     // create by xulingjian 2024-10-21
-    public List<ClassInfoDto> classInfos;
+    public DiffCodeDto diffCodes;
 
     /**
      * Create a new builder.
@@ -65,22 +66,22 @@ public class CoverageBuilder implements ICoverageVisitor {
         this.sourcefiles = new HashMap<String, ISourceFileCoverage>();
         if (null != classList && !"".equals(classList)) {
             Gson gson = new Gson();
-            classInfos = gson.fromJson(classList,
-                    new TypeToken<List<ClassInfoDto>>() {
+            diffCodes = gson.fromJson(classList,
+                    new TypeToken<DiffCodeDto>() {
                     }.getType());
         }
     }
 
     // create by xulingjian 2024-10-21
-    public List<ClassInfoDto> getClassInfos() {
-        return classInfos;
+    public DiffCodeDto getDiffCodes() {
+        return diffCodes;
     }
 
     // create by xulingjian 2024-10-21
-    public void setClassInfos(List<ClassInfoDto> classInfos) {
-        this.classInfos = classInfos;
+    public void setDiffCodes(DiffCodeDto diffCodes) {
+        this.diffCodes = diffCodes;
     }
-    
+
     /**
      * Returns all class nodes currently contained in this builder.
      *

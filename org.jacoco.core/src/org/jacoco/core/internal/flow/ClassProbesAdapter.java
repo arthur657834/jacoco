@@ -15,6 +15,7 @@ package org.jacoco.core.internal.flow;
 import org.jacoco.core.internal.analysis.ClassAnalyzer;
 import org.jacoco.core.internal.diff.ClassInfoDto;
 import org.jacoco.core.internal.diff.CodeDiffUtil;
+import org.jacoco.core.internal.diff.DiffCodeDto;
 import org.jacoco.core.internal.instr.InstrSupport;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
@@ -23,7 +24,7 @@ import org.objectweb.asm.commons.AnalyzerAdapter;
 import java.util.List;
 
 /**
- * A {@link org.objectweb.asm.ClassVisitor} that calculates probes for every
+ * A {@link ClassVisitor} that calculates probes for every
  * method.
  */
 public class ClassProbesAdapter extends ClassVisitor
@@ -66,30 +67,75 @@ public class ClassProbesAdapter extends ClassVisitor
                                            final String desc, final String signature,
                                            final String[] exceptions) {
         final MethodProbesVisitor methodProbes;
+        MethodProbesVisitor methodProbes1 = null;
         final MethodProbesVisitor mv = cv.visitMethod(access, name, desc,
                 signature, exceptions);
-        if (mv == null) {
+        if (mv != null) {
             // We need to visit the method in any case, otherwise probe ids
             // are not reproducible
             // methodProbes = EMPTY_METHOD_PROBES_VISITOR;
-            List<ClassInfoDto> classInfos = null;
+            DiffCodeDto diffCodes = null;
             if (cv instanceof ClassAnalyzer) {
-                classInfos = ((ClassAnalyzer) cv).getClassInfos();
+                diffCodes = ((ClassAnalyzer) cv).getDiffCodes();
             }
             // 增量代码，有点绕，由于参数定义成final,无法第二次指定,代码无法简化
-            if (null != classInfos && !classInfos.isEmpty()) {
-                if (CodeDiffUtil.checkMethodIn(this.name, name, desc,
-                        classInfos)) {
-                    methodProbes = mv;
-                } else {
-                    methodProbes = EMPTY_METHOD_PROBES_VISITOR;
+            if (null != diffCodes) {
+                if (diffCodes.getIncludes() == null && diffCodes.getExcludes() != null) {
+                    if (diffCodes.getExcludes().isEmpty()) {
+                        methodProbes1 = mv;
+                    } else {
+                        if (CodeDiffUtil.checkMethodIn(this.name, name, desc,
+                                diffCodes.getExcludes())) {
+                            methodProbes1 = EMPTY_METHOD_PROBES_VISITOR;
+                        } else {
+                            methodProbes1 = mv;
+                        }
+                    }
                 }
+
+                if (diffCodes.getIncludes() != null && diffCodes.getExcludes() == null) {
+                    if (diffCodes.getIncludes().isEmpty()) {
+                        methodProbes1 = EMPTY_METHOD_PROBES_VISITOR;
+                    } else {
+                        if (CodeDiffUtil.checkMethodIn(this.name, name, desc,
+                                diffCodes.getIncludes())) {
+                            methodProbes1 = mv;
+                        } else {
+                            methodProbes1 = EMPTY_METHOD_PROBES_VISITOR;
+                        }
+                    }
+                }
+
+                if (diffCodes.getIncludes() != null && diffCodes.getExcludes() != null) {
+                    if (diffCodes.getIncludes().isEmpty()) {
+                        methodProbes1 = EMPTY_METHOD_PROBES_VISITOR;
+                    } else {
+                        if (CodeDiffUtil.checkMethodIn(this.name, name, desc,
+                                diffCodes.getIncludes())) {
+                            if (diffCodes.getExcludes().isEmpty()) {
+                                methodProbes1 = mv;
+                            } else {
+                                if (CodeDiffUtil.checkMethodIn(this.name, name, desc,
+                                        diffCodes.getExcludes())) {
+                                    methodProbes1 = EMPTY_METHOD_PROBES_VISITOR;
+                                } else {
+                                    methodProbes1 = mv;
+                                }
+                            }
+                        } else {
+                            methodProbes1 = EMPTY_METHOD_PROBES_VISITOR;
+                        }
+                    }
+                }
+
+
             } else {
-                methodProbes = mv;
+                methodProbes1 = mv;
             }
         } else {
-            methodProbes = mv;
+            methodProbes1 = EMPTY_METHOD_PROBES_VISITOR;
         }
+        methodProbes = methodProbes1;
         return new MethodSanitizer(null, access, name, desc, signature,
                 exceptions) {
 
