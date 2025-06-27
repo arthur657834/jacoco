@@ -54,7 +54,7 @@ public class CodeDiffUtil {
                 || null == className) {
             return Boolean.FALSE;
         }
-        System.out.println("methodName0:" + methodName);
+        System.out.println("className:" + className + "methodName0:" + methodName);
         ClassInfoDto classInfoDto = classInfos.stream()
                 .filter(c -> className.equals(c.getClassFile())
                         || className.split("\\$")[0].equals(c.getClassFile()))
@@ -67,15 +67,18 @@ public class CodeDiffUtil {
         if (OPERATE_ADD.equals(classInfoDto.getType())) {
             return Boolean.TRUE;
         }
-        if (null == classInfoDto.getMethodInfos()
-                || classInfoDto.getMethodInfos().isEmpty()) {
+        if (null == classInfoDto.getMethodInfos()) {
+            return Boolean.TRUE;
+        }
+        if (classInfoDto.getMethodInfos().isEmpty()) {
             return Boolean.FALSE;
         }
         // 匹配了方法，参数也需要校验
         return classInfoDto.getMethodInfos().stream().anyMatch(m -> {
+            System.out.println("methodName:" + methodName + " m.methodName:" + m.getMethodName());
             if (methodName.equals(m.getMethodName())) {
-                System.out.println("methodName:" + methodName + " desc:" + m.getParameters());
-                return checkParamsIn(m.getParameters(), desc);
+                System.out.println("methodName:" + methodName + " parameters:" + m.getParameters());
+                return m.getParameters() == null ? Boolean.TRUE : checkParamsIn(m.getParameters(), desc);
                 // lambda表示式匹配
             } else if (methodName.contains("lambda$")
                     && methodName.split("\\$")[1].equals(m.getMethodName())) {

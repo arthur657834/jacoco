@@ -97,8 +97,10 @@ public class ClassProbesAdapter extends ClassVisitor
                     if (diffCodes.getIncludes().isEmpty()) {
                         methodProbes1 = EMPTY_METHOD_PROBES_VISITOR;
                     } else {
-                        if (CodeDiffUtil.checkMethodIn(this.name, name, desc,
-                                diffCodes.getIncludes())) {
+                        Boolean checkRes = CodeDiffUtil.checkMethodIn(this.name, name, desc,
+                                diffCodes.getIncludes());
+                        System.out.printf("name: %s desc: %s checkRes: %b\n", name, desc, checkRes);
+                        if (checkRes) {
                             methodProbes1 = mv;
                         } else {
                             methodProbes1 = EMPTY_METHOD_PROBES_VISITOR;
