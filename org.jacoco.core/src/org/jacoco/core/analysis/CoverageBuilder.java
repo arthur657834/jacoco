@@ -52,6 +52,19 @@ public class CoverageBuilder implements ICoverageVisitor {
     // create by xulingjian 2024-10-21
     public DiffCodeDto diffCodes;
 
+    // create by xulingjian 2024-10-21
+    public boolean isOnlyAnaly() {
+        return onlyAnaly;
+    }
+
+    // create by xulingjian 2024-10-21
+    public void setOnlyAnaly(boolean onlyAnaly) {
+        this.onlyAnaly = onlyAnaly;
+    }
+
+    // create by xulingjian 2024-10-21
+    public boolean onlyAnaly = false;
+
     /**
      * Create a new builder.
      */

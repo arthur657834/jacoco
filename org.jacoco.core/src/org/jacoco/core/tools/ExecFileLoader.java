@@ -20,11 +20,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Map;
 
 import org.jacoco.core.data.ExecutionDataReader;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.jacoco.core.data.ExecutionDataWriter;
 import org.jacoco.core.data.SessionInfoStore;
+import org.jacoco.core.internal.analysis.Instruction;
 
 /**
  * Convenience utility for loading *.exec files into a
@@ -32,111 +34,110 @@ import org.jacoco.core.data.SessionInfoStore;
  */
 public class ExecFileLoader {
 
-	private final SessionInfoStore sessionInfos;
-	private final ExecutionDataStore executionData;
+    private final SessionInfoStore sessionInfos;
+    private final ExecutionDataStore executionData;
 
-	/**
-	 * New instance to combine session infos and execution data from multiple
-	 * files.
-	 */
-	public ExecFileLoader() {
-		sessionInfos = new SessionInfoStore();
-		executionData = new ExecutionDataStore();
-	}
+    // create by xulingjian 2024-10-21
+    // 从exce文件解析的method指令数据，合并此exec的数据
+    // 类的方法级指令信息，key为类全称，value为方法签名
+    public static ThreadLocal<Map<String, Map<String, Map<String, Instruction>>>> instrunctionsThreadLocal = new ThreadLocal<>();
 
-	/**
-	 * Reads all data from given input stream.
-	 *
-	 * @param stream
-	 *            Stream to read data from
-	 * @throws IOException
-	 *             in case of problems while reading from the stream
-	 */
-	public void load(final InputStream stream) throws IOException {
-		final ExecutionDataReader reader = new ExecutionDataReader(
-				new BufferedInputStream(stream));
-		reader.setExecutionDataVisitor(executionData);
-		reader.setSessionInfoVisitor(sessionInfos);
-		reader.read();
-	}
+    // create by xulingjian 2024-10-21
+    public static ThreadLocal<Map<String, boolean[]>> probesMap = new ThreadLocal<>();
 
-	/**
-	 * Reads all data from given input stream.
-	 *
-	 * @param file
-	 *            file to read data from
-	 * @throws IOException
-	 *             in case of problems while reading from the stream
-	 */
-	public void load(final File file) throws IOException {
-		final InputStream stream = new FileInputStream(file);
-		try {
-			load(stream);
-		} finally {
-			stream.close();
-		}
-	}
+    /**
+     * New instance to combine session infos and execution data from multiple
+     * files.
+     */
+    public ExecFileLoader() {
+        sessionInfos = new SessionInfoStore();
+        executionData = new ExecutionDataStore();
+    }
 
-	/**
-	 * Saves the current content into the given output stream.
-	 *
-	 * @param stream
-	 *            stream to save content to
-	 * @throws IOException
-	 *             in case of problems while writing to the stream
-	 */
-	public void save(final OutputStream stream) throws IOException {
-		final ExecutionDataWriter dataWriter = new ExecutionDataWriter(stream);
-		sessionInfos.accept(dataWriter);
-		executionData.accept(dataWriter);
-	}
+    /**
+     * Reads all data from given input stream.
+     *
+     * @param stream Stream to read data from
+     * @throws IOException in case of problems while reading from the stream
+     */
+    public void load(final InputStream stream) throws IOException {
+        final ExecutionDataReader reader = new ExecutionDataReader(
+                new BufferedInputStream(stream));
+        reader.setExecutionDataVisitor(executionData);
+        reader.setSessionInfoVisitor(sessionInfos);
+        reader.read();
+    }
 
-	/**
-	 * Saves the current content into the given file. Parent directories are
-	 * created as needed. Also a files system lock is acquired to avoid
-	 * concurrent write access.
-	 *
-	 * @param file
-	 *            file to save content to
-	 * @param append
-	 *            <code>true</code> if the content should be appended, otherwise
-	 *            the file is overwritten.
-	 * @throws IOException
-	 *             in case of problems while writing to the stream
-	 */
-	public void save(final File file, final boolean append) throws IOException {
-		final File folder = file.getParentFile();
-		if (folder != null) {
-			folder.mkdirs();
-		}
-		final FileOutputStream fileStream = new FileOutputStream(file, append);
-		// Avoid concurrent writes from other processes:
-		fileStream.getChannel().lock();
-		final OutputStream bufferedStream = new BufferedOutputStream(
-				fileStream);
-		try {
-			save(bufferedStream);
-		} finally {
-			bufferedStream.close();
-		}
-	}
+    /**
+     * Reads all data from given input stream.
+     *
+     * @param file file to read data from
+     * @throws IOException in case of problems while reading from the stream
+     */
+    public void load(final File file) throws IOException {
+        final InputStream stream = new FileInputStream(file);
+        try {
+            load(stream);
+        } finally {
+            stream.close();
+        }
+    }
 
-	/**
-	 * Returns the session info store with all loaded sessions.
-	 *
-	 * @return session info store
-	 */
-	public SessionInfoStore getSessionInfoStore() {
-		return sessionInfos;
-	}
+    /**
+     * Saves the current content into the given output stream.
+     *
+     * @param stream stream to save content to
+     * @throws IOException in case of problems while writing to the stream
+     */
+    public void save(final OutputStream stream) throws IOException {
+        final ExecutionDataWriter dataWriter = new ExecutionDataWriter(stream);
+        sessionInfos.accept(dataWriter);
+        executionData.accept(dataWriter);
+    }
 
-	/**
-	 * Returns the execution data store with data for all loaded classes.
-	 *
-	 * @return execution data store
-	 */
-	public ExecutionDataStore getExecutionDataStore() {
-		return executionData;
-	}
+    /**
+     * Saves the current content into the given file. Parent directories are
+     * created as needed. Also a files system lock is acquired to avoid
+     * concurrent write access.
+     *
+     * @param file   file to save content to
+     * @param append <code>true</code> if the content should be appended, otherwise
+     *               the file is overwritten.
+     * @throws IOException in case of problems while writing to the stream
+     */
+    public void save(final File file, final boolean append) throws IOException {
+        final File folder = file.getParentFile();
+        if (folder != null) {
+            folder.mkdirs();
+        }
+        final FileOutputStream fileStream = new FileOutputStream(file, append);
+        // Avoid concurrent writes from other processes:
+        fileStream.getChannel().lock();
+        final OutputStream bufferedStream = new BufferedOutputStream(
+                fileStream);
+        try {
+            save(bufferedStream);
+        } finally {
+            bufferedStream.close();
+        }
+    }
+
+    /**
+     * Returns the session info store with all loaded sessions.
+     *
+     * @return session info store
+     */
+    public SessionInfoStore getSessionInfoStore() {
+        return sessionInfos;
+    }
+
+    /**
+     * Returns the execution data store with data for all loaded classes.
+     *
+     * @return execution data store
+     */
+    public ExecutionDataStore getExecutionDataStore() {
+        return executionData;
+    }
 
 }

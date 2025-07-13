@@ -81,19 +81,89 @@ public class Report extends Command {
     @Option(name = "--diffCodeFiles", usage = "input file for diff", metaVar = "<path>")
     String diffCodeFiles;
 
+    // create by xulingjian 2024-10-21
+    @Option(name = "--onlyMergeExec", usage = "only merger exec,not create report", metaVar = "<charset>")
+    String onlyMergeExec;
+
+    // create by xulingjian 2024-10-21
+    // 多版本覆盖率合并用，需要合并版本的exec文件
+    @Option(name = "--mergeExecfilepath", usage = "need to merge execfile", metaVar = "<path>")
+    List<File> mergeExecfiles = new ArrayList<File>();
+
+    // create by xulingjian 2024-10-21
+    // 需要合并版本的class文件，插桩必须要用到老的class文件
+    @Option(name = "--mergeClassfilepath", usage = "location of Java class files need to merge", metaVar = "<path>")
+    List<File> mergeClassfiles = new ArrayList<File>();
+
+    // create by xulingjian 2024-10-21
+    @Option(name = "--mergeExec", usage = "output file for the finished merge exec file ", metaVar = "<charset>")
+    String mergeExec;
+
     @Override
     public String description() {
         return "Generate reports in different formats by reading exec and Java class files.";
     }
 
+//    @Override
+//    public int execute(final PrintWriter out, final PrintWriter err)
+//            throws IOException {
+//        final ExecFileLoader loader = loadExecutionData(out);
+//        final IBundleCoverage bundle = analyze(loader.getExecutionDataStore(),
+//                out);
+//        writeReports(bundle, loader, out);
+//        return 0;
+//    }
+
+    // create by xulingjian 2024-10-21
     @Override
-    public int execute(final PrintWriter out, final PrintWriter err)
-            throws IOException {
-        final ExecFileLoader loader = loadExecutionData(out);
-        final IBundleCoverage bundle = analyze(loader.getExecutionDataStore(),
-                out);
-        writeReports(bundle, loader, out);
+    public int execute(final PrintWriter out, final PrintWriter err) throws IOException {
+        // 需要合并exec文件，同个方法就合并方法的指令的覆盖率
+        if (!this.mergeExecfiles.isEmpty() && !this.mergeClassfiles.isEmpty()) {
+            final ExecFileLoader loader = loadExecutionData(out, mergeExecfiles);
+            analyze(loader.getExecutionDataStore(), out, mergeClassfiles, true);
+        }
+        try {
+            final ExecFileLoader loader = loadExecutionData(out, this.execfiles);
+            final IBundleCoverage bundle = analyze(loader.getExecutionDataStore(), out, classfiles, false);
+            // 只合并exec文件，不生成报告
+            if (onlyMergeExec != null && onlyMergeExec.equals("true")) {
+                loader.save(new File(mergeExec), false);
+            } else {
+                writeReports(bundle, loader, out);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            ExecFileLoader.instrunctionsThreadLocal.remove();
+//            ExecFileLoader.classInfo.remove();
+//            ExecFileLoader.classInfoDto.remove();
+            ExecFileLoader.probesMap.remove();
+        }
         return 0;
+    }
+
+    // create by xulingjian 2024-10-21
+
+    /**
+     * 加载exec文件
+     *
+     * @param out
+     * @return
+     * @throws IOException
+     */
+    private ExecFileLoader loadExecutionData(final PrintWriter out,
+                                             List<File> execfiles) throws IOException {
+        final ExecFileLoader loader = new ExecFileLoader();
+        if (execfiles.isEmpty()) {
+            out.println("[WARN] No execution data files provided.");
+        } else {
+            for (final File file : execfiles) {
+                out.printf("[INFO] Loading execution data file %s.%n",
+                        file.getAbsolutePath());
+                loader.load(file);
+            }
+        }
+        return loader;
     }
 
     private ExecFileLoader loadExecutionData(final PrintWriter out)
@@ -129,6 +199,29 @@ public class Report extends Command {
         // create by xulingjian 2024-10-21 end
 
         final Analyzer analyzer = new Analyzer(data, builder);
+        for (final File f : classfiles) {
+            analyzer.analyzeAll(f);
+        }
+        printNoMatchWarning(builder.getNoMatchClasses(), out);
+        return builder.getBundle(name);
+    }
+
+    // create by xulingjian 2024-10-21
+    private IBundleCoverage analyze(final ExecutionDataStore data,
+                                    final PrintWriter out, List<File> classfiles, boolean isOnlyAnaly)
+            throws IOException {
+        CoverageBuilder builder;
+        // 如果有增量参数将其设置进去
+        if (null != this.diffCodeFiles) {
+            builder = new CoverageBuilder(JsonReadUtil.readJsonToString(this.diffCodeFiles));
+        } else if (null != this.diffCode) {
+            builder = new CoverageBuilder(this.diffCode);
+        } else {
+            builder = new CoverageBuilder();
+        }
+        builder.setOnlyAnaly(isOnlyAnaly);
+        final Analyzer analyzer = new Analyzer(data, builder);
+        // class类用于类方法的比较，源码只用于最后的着色
         for (final File f : classfiles) {
             analyzer.analyzeAll(f);
         }

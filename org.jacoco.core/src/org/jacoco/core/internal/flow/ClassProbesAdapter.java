@@ -172,4 +172,8 @@ public class ClassProbesAdapter extends ClassVisitor
         return counter++;
     }
 
+    // create by xulingjian 2024-10-21
+    public int getId() {
+        return counter;
+    }
 }
