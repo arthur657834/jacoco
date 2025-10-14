@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import com.google.gson.Gson;
 import org.jacoco.core.internal.analysis.filter.Filters;
 import org.jacoco.core.internal.analysis.filter.IFilter;
 import org.jacoco.core.internal.analysis.filter.IFilterContext;
@@ -83,12 +84,13 @@ public class ClassAnalyzer extends ClassProbesVisitor
     // create by xulingjian 2024-10-21
     public ClassAnalyzer(final ClassCoverageImpl coverage,
                          final boolean[] probes, final StringPool stringPool,
-                         DiffCodeDto diffCodes) {
+                         DiffCodeDto diffCodes, boolean onlyAnaly) {
         this.coverage = coverage;
         this.probes = probes;
         this.stringPool = stringPool;
         this.filter = Filters.all();
         this.diffCodes = diffCodes;
+        this.onlyAnaly = onlyAnaly;
     }
 
     // create by xulingjian 2024-10-21
@@ -156,8 +158,10 @@ public class ClassAnalyzer extends ClassProbesVisitor
             public void accept(final MethodNode methodNode,
                                final MethodVisitor methodVisitor) {
                 // 统计method的方法体的指令级别覆盖率，指令级别需要关注的是braches和coverbraches，line代码合并不需要关注，染色用
+                System.out.printf("access: %s name: %s desc: %s signature: %s coverageName: %s\n", access, name, desc, signature, coverage.getName());
                 String methodSign = access + name + desc + signature;
                 super.accept(methodNode, methodVisitor);
+                System.out.printf("methodSign: %s coverageName: %s exceptions: %b\n", methodSign, coverage.getName(), exceptions == null);
                 // 合并多版本覆盖率的时候不要走后面addMethodCoverage的流程，只获取到指令覆盖率就行
                 if (exceptions != null) {
                     for (String s : exceptions) {
@@ -166,6 +170,11 @@ public class ClassAnalyzer extends ClassProbesVisitor
                 }
                 Map<String, Map<String, Map<String, Instruction>>> instrunctions = ExecFileLoader.instrunctionsThreadLocal.get();
                 Map<String, boolean[]> probesMap = ExecFileLoader.probesMap.get();
+//                if (probesMap != null) {
+//                    System.out.printf("methodSign: %s coverageName: %s probesMap: %s onlyAnaly: %b\n", methodSign, coverage.getName(), new Gson().toJson(probesMap), onlyAnaly);
+//                } else {
+//                    System.out.printf("methodSign: %s coverageName: %s onlyAnaly: %b\n", methodSign, coverage.getName(), onlyAnaly);
+//                }
                 if (onlyAnaly) {
                     Map<String, Map<String, Instruction>> methodInstructions = new HashMap<>();
                     Map<String, Instruction> instructionMap = new HashMap<>();
@@ -185,6 +194,7 @@ public class ClassAnalyzer extends ClassProbesVisitor
                             instrunctions.put(coverage.getName(), methodInstructions);
                         }
                     }
+                    System.out.printf("coverage name: %s probesMap: %b\n", coverage.getName(), probesMap == null);
                     if (probesMap == null) {
                         probesMap = new HashMap<>();
                         probesMap.put(coverage.getName(), probes);
@@ -192,10 +202,12 @@ public class ClassAnalyzer extends ClassProbesVisitor
                     } else {
                         probesMap.put(coverage.getName(), probes);
                     }
+//                    System.out.printf("coverage name: %s probesMap: %s\n", coverage.getName(), new Gson().toJson(probesMap));
                     return;
                 }
                 // 如果存在已有的覆盖率数据，则合并method的指令覆盖率
                 if (instrunctions != null && instrunctions.containsKey(coverage.getName())) {
+                    System.out.printf("coverage name: %s merge\n", coverage.getName());
                     // 合并method的指令数据
                     Map<String, Instruction> mergeInstructionMap = instrunctions.get(coverage.getName()).get(methodSign);
                     // 通过指令判断是否为同一个方法，所有指令签名一样的情况下判断是一样的
@@ -209,6 +221,7 @@ public class ClassAnalyzer extends ClassProbesVisitor
                                 break;
                             }
                         }
+                        System.out.printf("coverage name: %s isSameMethod: %b\n", coverage.getName(), isSameMethod);
                         // 同一个方法
                         if (isSameMethod) {
                             //合并exec新方案--直接合并两个probes对应的探针
@@ -222,18 +235,25 @@ public class ClassAnalyzer extends ClassProbesVisitor
                                 //jacoco是以方法级别进行插桩的，所以理论上同个方法的探针的长度是一样的
                                 assert probeEnd - probeStrart == mergeProbeEnd - mergeProbeStart;
                                 if (mergeProbesMap != null && mergeProbesMap.containsKey(coverage.getName())) {
+                                    System.out.printf("coverage name: %s merge probe\n", coverage.getName());
                                     boolean[] mergeProbes = mergeProbesMap.get(coverage.getName());
-                                    int currentIndex = mergeProbeStart;
-                                    for (int k = probeStrart; k < probeEnd + 1; k++) {
-                                        if (mergeProbes[currentIndex]) {
-                                            probes[k] = true;
+                                    if (mergeProbes != null) {
+                                        int currentIndex = mergeProbeStart;
+                                        System.out.printf("coverage name: %s currentIndex: %s mergeProbes: %s\n", coverage.getName(), currentIndex, mergeProbes.length);
+                                        for (int k = probeStrart; k < probeEnd + 1; k++) {
+                                            if (mergeProbes[currentIndex]) {
+                                                probes[k] = true;
+                                            }
+                                            currentIndex++;
                                         }
-                                        currentIndex++;
+                                    } else {
+                                        System.out.printf("coverage name: %s mergeProbes is null\n", coverage.getName());
                                     }
                                 }
                             }
                             //合并指令
                             for (AbstractInsnNode key : nowInstructions.keySet()) {
+                                System.out.printf("coverage name: %s key\n", coverage.getName());
                                 Instruction instruction = nowInstructions.get(key);
                                 //合并指令
                                 Instruction other = mergeInstructionMap.get(instruction.getSign());

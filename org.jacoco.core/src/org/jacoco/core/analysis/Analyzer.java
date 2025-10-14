@@ -82,7 +82,7 @@ public class Analyzer {
      * @return ASM visitor to write class definition to
      */
     private ClassVisitor createAnalyzingVisitor(final long classid,
-                                                final String className) {
+                                                final String className, boolean onlyAnaly, ClassReader reader) {
         final ExecutionData data = executionData.get(classid);
         final boolean[] probes;
         final boolean noMatch;
@@ -105,11 +105,13 @@ public class Analyzer {
 //        };
         // create by xulingjian 2024-10-21 start
         final ClassAnalyzer analyzer = new ClassAnalyzer(coverage, probes,
-                stringPool, this.diffCodes) {
+                stringPool, this.diffCodes, onlyAnaly) {
             @Override
             public void visitEnd() {
                 super.visitEnd();
                 // 这里有个模板方法模式的钩子方法，这里先定义，等后面类的方法解析完再调用此方法
+                // class级别的覆盖率，把instructions的覆盖率写入行SourceNodeImpl的行覆盖率，
+                // 在生成报告时候通过指令行的覆盖率来染色
                 coverageVisitor.visitCoverage(coverage);
             }
         };
@@ -126,10 +128,13 @@ public class Analyzer {
         if ((reader.getAccess() & Opcodes.ACC_SYNTHETIC) != 0) {
             return;
         }
+
+        boolean isOnlyAnaly = false;
         // create by xulingjian 2024-10-21 start
         if (this.coverageVisitor instanceof CoverageBuilder) {
             this.diffCodes = ((CoverageBuilder) this.coverageVisitor)
                     .getDiffCodes();
+            isOnlyAnaly = ((CoverageBuilder) this.coverageVisitor).onlyAnaly;
         }
         // 字段不为空说明是增量覆盖
         if (null != this.diffCodes) {
@@ -163,7 +168,7 @@ public class Analyzer {
         }
         // create by xulingjian 2024-10-21 end
         final ClassVisitor visitor = createAnalyzingVisitor(classId,
-                reader.getClassName());
+                reader.getClassName(), isOnlyAnaly, reader);
         // 重点，开始解析类里面的方法，逐个方法遍历
         reader.accept(visitor, 0);
     }
