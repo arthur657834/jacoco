@@ -17,7 +17,7 @@
   <parent>
     <groupId>org.jacoco</groupId>
     <artifactId>org.jacoco.core.test.validation</artifactId>
-    <version>0.8.14-SNAPSHOT</version>
+    <version>0.8.15-SNAPSHOT</version>
     <relativePath>../org.jacoco.core.test.validation</relativePath>
   </parent>
 
@@ -27,7 +27,8 @@
 
   <properties>
     <gmaven.version>3.0.0</gmaven.version>
-    <groovy.version>3.0.22</groovy.version>
+    <!-- When upgrading Groovy do not forget to update JVM targets in org.jacoco.core.test.validation/pom.xml -->
+    <groovy.version>3.0.25</groovy.version>
   </properties>
 
   <dependencies>

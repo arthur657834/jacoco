@@ -16,7 +16,7 @@
   <parent>
     <groupId>org.jacoco</groupId>
     <artifactId>org.jacoco.core.test.validation</artifactId>
-    <version>0.8.14-SNAPSHOT</version>
+    <version>0.8.15-SNAPSHOT</version>
     <relativePath>../org.jacoco.core.test.validation</relativePath>
   </parent>
 
@@ -25,7 +25,8 @@
   <name>JaCoCo :: Test :: Core :: Validation Kotlin</name>
 
   <properties>
-    <kotlin.version>2.1.21</kotlin.version>
+    <!-- When upgrading Kotlin do not forget to update JVM targets in org.jacoco.core.test.validation/pom.xml -->
+    <kotlin.version>2.2.20</kotlin.version>
   </properties>
 
   <dependencies>
@@ -43,6 +44,11 @@
       <artifactId>kotlinx-coroutines-core</artifactId>
       <version>1.8.0</version>
     </dependency>
+    <dependency>
+      <groupId>org.jetbrains.kotlinx</groupId>
+      <artifactId>kotlinx-serialization-core-jvm</artifactId>
+      <version>1.6.3</version>
+    </dependency>
   </dependencies>
 
   <build>
@@ -58,8 +64,27 @@
             <goals>
               <goal>compile</goal>
             </goals>
+            <configuration>
+              <args>
+                <!-- TODO `-jvm-default disable` or `-jvm-default no-compatibility` are workarounds for https://github.com/jacoco/jacoco/issues/1905 -->
+                <arg>-jvm-default</arg>
+                <arg>disable</arg>
+              </args>
+            </configuration>
           </execution>
         </executions>
+        <configuration>
+          <compilerPlugins>
+            <plugin>kotlinx-serialization</plugin>
+          </compilerPlugins>
+        </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-maven-serialization</artifactId>
+            <version>${kotlin.version}</version>
+          </dependency>
+        </dependencies>
       </plugin>
     </plugins>
   </build>

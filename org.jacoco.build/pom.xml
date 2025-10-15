@@ -10,13 +10,12 @@
    Contributors:
       Evgeny Mandrikov - initial API and implementation
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.jacoco</groupId>
     <artifactId>org.jacoco.build</artifactId>
-    <version>0.8.14-SNAPSHOT</version>
+    <version>0.8.15-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>JaCoCo</name>
@@ -115,7 +114,7 @@
         <repository>
             <id>sonatype-nexus-staging</id>
             <name>Nexus Release Repository</name>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+            <url>https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/</url>
         </repository>
         <snapshotRepository>
             <id>sonatype-nexus-snapshots</id>
@@ -126,8 +125,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <sonatypeOssDistMgmtSnapshotsUrl>https://oss.sonatype.org/content/repositories/snapshots/
-        </sonatypeOssDistMgmtSnapshotsUrl>
+        <sonatypeOssDistMgmtSnapshotsUrl>https://central.sonatype.com/repository/maven-snapshots/</sonatypeOssDistMgmtSnapshotsUrl>
 
         <maven.build.timestamp.format>yyyyMMddhhmm</maven.build.timestamp.format>
         <jacoco.home.url>http://www.jacoco.org/jacoco</jacoco.home.url>
@@ -141,7 +139,7 @@
         <argLine>${jvm.args}</argLine>
 
         <!-- Dependencies versions -->
-        <asm.version>9.8</asm.version>
+        <asm.version>9.9</asm.version>
         <ant.version>1.9.16</ant.version>
         <args4j.version>2.0.28</args4j.version>
         <junit.version>4.13.2</junit.version>
@@ -150,8 +148,7 @@
         <!-- ================== -->
         <!-- For SonarQube analysis -->
         <!-- ================== -->
-        <sonar.coverage.jacoco.xmlReportPaths>../org.jacoco.doc/target/site/jacoco-aggregate/jacoco.xml
-        </sonar.coverage.jacoco.xmlReportPaths>
+        <sonar.coverage.jacoco.xmlReportPaths>../org.jacoco.doc/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
         <sonar.surefire.reportsPath>../${project.artifactId}.test/target/surefire-reports/</sonar.surefire.reportsPath>
 
         <!-- See http://jira.codehaus.org/browse/SONAR-2096 -->
@@ -159,7 +156,7 @@
         <sonar.java.target>1.5</sonar.java.target>
 
         <!--      create by xulingjian 2024-10-21-->
-        <gson.version>2.13.0</gson.version>
+        <gson.version>2.13.2</gson.version>
     </properties>
 
     <dependencyManagement>
@@ -255,9 +252,7 @@
                 <artifactId>junit</artifactId>
                 <version>${junit.version}</version>
             </dependency>
-
             <!--      create by xulingjian 2024-10-21-->
-            <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
             <dependency>
                 <groupId>com.google.code.gson</groupId>
                 <artifactId>gson</artifactId>
@@ -321,7 +316,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-clean-plugin</artifactId>
-                    <version>3.4.1</version>
+                    <version>3.5.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -332,7 +327,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
-                    <version>3.8.1</version>
+                    <version>3.9.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -342,7 +337,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-enforcer-plugin</artifactId>
-                    <version>3.5.0</version>
+                    <version>3.6.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -352,12 +347,12 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-invoker-plugin</artifactId>
-                    <version>3.9.0</version>
+                    <version>3.9.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-gpg-plugin</artifactId>
-                    <version>3.2.7</version>
+                    <version>3.2.8</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -433,7 +428,7 @@
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>build-helper-maven-plugin</artifactId>
-                    <version>3.6.0</version>
+                    <version>3.6.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
@@ -448,7 +443,7 @@
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>exec-maven-plugin</artifactId>
-                    <version>3.5.0</version>
+                    <version>3.5.1</version>
                 </plugin>
                 <!-- Third-party plugins -->
                 <plugin>
@@ -464,12 +459,12 @@
                 <plugin>
                     <groupId>com.diffplug.spotless</groupId>
                     <artifactId>spotless-maven-plugin</artifactId>
-                    <version>2.44.4</version>
+                    <version>3.0.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.sonarsource.scanner.maven</groupId>
                     <artifactId>sonar-maven-plugin</artifactId>
-                    <version>5.1.0.4751</version>
+                    <version>5.2.0.4988</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -534,12 +529,10 @@
                                     <version>17</version>
                                 </requireJavaVersion>
                                 <requireMavenVersion>
-                                    <version>3.9.9</version>
+                                    <version>3.9.11</version>
                                 </requireMavenVersion>
                                 <requireNoRepositories>
-                                    <message>The rules for repo1.maven.org are that pom.xml files should not include
-                                        repository definitions.
-                                    </message>
+                                    <message>The rules for repo1.maven.org are that pom.xml files should not include repository definitions.</message>
                                     <banRepositories>true</banRepositories>
                                     <banPluginRepositories>true</banPluginRepositories>
                                 </requireNoRepositories>
@@ -615,19 +608,15 @@
                         </goals>
                         <configuration>
                             <target>
-                                <fileset dir="${basedir}" includes="**/*.java,**/*.xml,**/*.bsh"
-                                         excludes="target/**,.idea/**,nb-configuration.xml" id="missinglicense.fileset">
+                                <fileset dir="${basedir}" includes="**/*.java,**/*.xml,**/*.bsh" excludes="target/**,.idea/**,nb-configuration.xml" id="missinglicense.fileset">
                                     <include name="**/*.kt"/>
                                     <include name="**/*.groovy"/>
                                     <include name="**/*.scala"/>
                                     <not>
                                         <and>
-                                            <contains
-                                                    text="Copyright (c) ${copyright.years} Mountainminds GmbH &amp; Co. KG and Contributors"/>
-                                            <contains
-                                                    text="This program and the accompanying materials are made available under"/>
-                                            <contains
-                                                    text="the terms of the Eclipse Public License 2.0 which is available at"/>
+                                            <contains text="Copyright (c) ${copyright.years} Mountainminds GmbH &amp; Co. KG and Contributors"/>
+                                            <contains text="This program and the accompanying materials are made available under"/>
+                                            <contains text="the terms of the Eclipse Public License 2.0 which is available at"/>
                                             <contains text="http://www.eclipse.org/legal/epl-2.0"/>
                                             <contains text="SPDX-License-Identifier: EPL-2.0"/>
                                         </and>
@@ -747,9 +736,7 @@
                             org.objectweb.asm.*;version="${range;[===,=+);${asm.version}}"
                         </Import-Package>
                         <Bundle-RequiredExecutionEnvironment>J2SE-1.5</Bundle-RequiredExecutionEnvironment>
-                        <Eclipse-SourceReferences>
-                            scm:git:git://github.com/jacoco/jacoco.git;path="${project.artifactId}";commitId=${build.commitId}
-                        </Eclipse-SourceReferences>
+                        <Eclipse-SourceReferences>scm:git:git://github.com/jacoco/jacoco.git;path="${project.artifactId}";commitId=${build.commitId}</Eclipse-SourceReferences>
                     </instructions>
                 </configuration>
             </plugin>
@@ -975,6 +962,20 @@
                 <property>
                     <name>bytecode.version</name>
                     <value>25</value>
+                </property>
+            </activation>
+            <properties>
+                <maven.compiler.source>17</maven.compiler.source>
+                <maven.compiler.target>17</maven.compiler.target>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>java26-bytecode</id>
+            <activation>
+                <property>
+                    <name>bytecode.version</name>
+                    <value>26</value>
                 </property>
             </activation>
             <properties>

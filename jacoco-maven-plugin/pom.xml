@@ -17,7 +17,7 @@
   <parent>
     <groupId>org.jacoco</groupId>
     <artifactId>org.jacoco.build</artifactId>
-    <version>0.8.14-SNAPSHOT</version>
+    <version>0.8.15-SNAPSHOT</version>
     <relativePath>../org.jacoco.build</relativePath>
   </parent>
 
@@ -59,7 +59,7 @@
     <dependency>
       <groupId>org.apache.maven.shared</groupId>
       <artifactId>file-management</artifactId>
-      <version>3.1.0</version>
+      <version>3.2.0</version>
     </dependency>
 
     <dependency>
