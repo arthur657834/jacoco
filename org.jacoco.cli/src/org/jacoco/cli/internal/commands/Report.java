@@ -166,21 +166,6 @@ public class Report extends Command {
         return loader;
     }
 
-    private ExecFileLoader loadExecutionData(final PrintWriter out)
-            throws IOException {
-        final ExecFileLoader loader = new ExecFileLoader();
-        if (execfiles.isEmpty()) {
-            out.println("[WARN] No execution data files provided.");
-        } else {
-            for (final File file : execfiles) {
-                out.printf("[INFO] Loading execution data file %s.%n",
-                        file.getAbsolutePath());
-                loader.load(file);
-            }
-        }
-        return loader;
-    }
-
     private IBundleCoverage analyze(final ExecutionDataStore data,
                                     final PrintWriter out) throws IOException {
 //        final CoverageBuilder builder = new CoverageBuilder();

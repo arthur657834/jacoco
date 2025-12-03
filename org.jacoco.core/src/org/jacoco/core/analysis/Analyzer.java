@@ -37,6 +37,7 @@ import org.jacoco.core.internal.diff.CodeDiffUtil;
 import org.jacoco.core.internal.diff.DiffCodeDto;
 import org.jacoco.core.internal.flow.ClassProbesAdapter;
 import org.jacoco.core.internal.instr.InstrSupport;
+import org.jacoco.core.internal.instr.ProbeArrayStrategyFactory;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
@@ -87,8 +88,16 @@ public class Analyzer {
         final boolean[] probes;
         final boolean noMatch;
         if (data == null) {
-            probes = null;
-            noMatch = executionData.contains(className);
+//            probes = null;
+//            noMatch = executionData.contains(className);
+            // create by xulingjian 2024-10-21 start
+            int probeCount = ProbeArrayStrategyFactory.getProbeCounter(reader)
+                    .getCount();
+            probes = new boolean[probeCount];
+            ExecutionData addEmptyExecutionData = new ExecutionData(classid,
+                    className, probes);
+            executionData.put(addEmptyExecutionData);
+            noMatch = false;
         } else {
             probes = data.getProbes();
             noMatch = false;
@@ -166,6 +175,10 @@ public class Analyzer {
                 }
             }
         }
+		// visitor为ClassProbesAdapter，它的vistor是ClassAnalyzer，同时注册了个visitEnd的钩子
+		// visitEnd钩子方法里面实现的是coverageVisitor.visitCoverage(coverage);
+		// 所以先走的ClassAnalyzer的方法，在ClassAnalyzer调用visitEnd的时候调用coverageVisitor.visitCoverage(coverage);
+		// ClassAnalyzer的CoverageBuilder builder最终分析指令覆盖级别信息，再推理方法更大的级别
         // create by xulingjian 2024-10-21 end
         final ClassVisitor visitor = createAnalyzingVisitor(classId,
                 reader.getClassName(), isOnlyAnaly, reader);

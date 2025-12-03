@@ -162,7 +162,7 @@ public class ClassAnalyzer extends ClassProbesVisitor
                 System.out.printf("access: %s name: %s desc: %s signature: %s coverageName: %s\n", access, name, desc, signature, coverageName);
                 String methodSign = access + name + desc + signature;
                 super.accept(methodNode, methodVisitor);
-                System.out.printf("methodSign: %s coverageName: %s exceptions: %b\n", methodSign, coverageName, exceptions == null);
+                System.out.printf("methodSign: %s coverageName: %s name: %s exceptions: %b\n", methodSign, coverageName, name, exceptions == null);
                 // 合并多版本覆盖率的时候不要走后面addMethodCoverage的流程，只获取到指令覆盖率就行
                 if (exceptions != null) {
                     for (String s : exceptions) {
@@ -171,11 +171,11 @@ public class ClassAnalyzer extends ClassProbesVisitor
                 }
                 Map<String, Map<String, Map<String, Instruction>>> instrunctions = ExecFileLoader.instrunctionsThreadLocal.get();
                 Map<String, boolean[]> probesMap = ExecFileLoader.probesMap.get();
-//                if (probesMap != null) {
-//                    System.out.printf("methodSign: %s coverageName: %s probesMap: %s onlyAnaly: %b\n", methodSign, coverage.getName(), new Gson().toJson(probesMap), onlyAnaly);
-//                } else {
-//                    System.out.printf("methodSign: %s coverageName: %s onlyAnaly: %b\n", methodSign, coverage.getName(), onlyAnaly);
-//                }
+                if (probesMap != null) {
+                    System.out.printf("methodSign: %s coverageName: %s name: %s probesMap: %s onlyAnaly: %b\n", methodSign, coverageName, name, new Gson().toJson(probesMap), onlyAnaly);
+                } else {
+                    System.out.printf("methodSign: %s coverageName: %s name: %s onlyAnaly: %b\n", methodSign, coverageName, name, onlyAnaly);
+                }
                 if (onlyAnaly) {
                     Map<String, Map<String, Instruction>> methodInstructions = new HashMap<>();
                     Map<String, Instruction> instructionMap = new HashMap<>();
@@ -184,18 +184,20 @@ public class ClassAnalyzer extends ClassProbesVisitor
                         instructionMap.put(instruction.getSign(), instruction);
                     }
                     methodInstructions.put(methodSign, instructionMap);
+                    System.out.printf("coverageName: %s name: %s instrunctions: %b\n", coverageName, name, instrunctions == null);
                     if (instrunctions == null) {
                         instrunctions = new HashMap<>();
                         instrunctions.put(coverageName, methodInstructions);
                         ExecFileLoader.instrunctionsThreadLocal.set(instrunctions);
                     } else {
+                        System.out.printf("coverageName: %s name: %s containsKey coverageName: %b\n", coverageName, name, instrunctions.containsKey(coverageName));
                         if (instrunctions.containsKey(coverageName)) {
                             instrunctions.get(coverageName).put(methodSign, instructionMap);
                         } else {
                             instrunctions.put(coverageName, methodInstructions);
                         }
                     }
-                    System.out.printf("coverage name: %s probesMap: %b\n", coverageName, probesMap == null);
+                    System.out.printf("coverageName: %s name: %s probesMap is null: %b probes is null: %b\n", coverageName, name, probesMap == null, probes == null);
                     if (probesMap == null) {
                         probesMap = new HashMap<>();
                         probesMap.put(coverageName, probes);
@@ -208,7 +210,7 @@ public class ClassAnalyzer extends ClassProbesVisitor
                 }
                 // 如果存在已有的覆盖率数据，则合并method的指令覆盖率
                 if (instrunctions != null && instrunctions.containsKey(coverageName)) {
-                    System.out.printf("coverage name: %s merge\n", coverageName);
+                    System.out.printf("coverageName: %s name: %s merge\n", coverageName, name);
                     // 合并method的指令数据
                     Map<String, Instruction> mergeInstructionMap = instrunctions.get(coverageName).get(methodSign);
                     // 通过指令判断是否为同一个方法，所有指令签名一样的情况下判断是一样的
@@ -222,34 +224,34 @@ public class ClassAnalyzer extends ClassProbesVisitor
                                 break;
                             }
                         }
-                        System.out.printf("coverage name: %s isSameMethod: %b\n", coverageName, isSameMethod);
+                        System.out.printf("coverageName: %s name: %s isSameMethod: %b\n", coverageName, name, isSameMethod);
                         // 同一个方法
                         if (isSameMethod) {
                             //合并exec新方案--直接合并两个probes对应的探针
                             Map<String, boolean[]> mergeProbesMap = ExecFileLoader.probesMap.get();
                             Optional<Instruction> instructionOptional = nowInstructions.values().stream().filter(i -> i.getProbeIndex() >= 0).min(Comparator.comparingInt(Instruction::getProbeIndex));
-                            System.out.printf("coverage name: %s probes: %b instructionOptional: %b\n", coverageName, probes != null, instructionOptional.isPresent());
+                            System.out.printf("coverageName: %s name: %s probes: %b instructionOptional: %b\n", coverageName, name, probes != null, instructionOptional.isPresent());
                             if (instructionOptional.isPresent()) {
                                 int probeStart = instructionOptional.get().getProbeIndex();
                                 int probeEnd = nowInstructions.values().stream().filter(i -> i.getProbeIndex() >= 0).max(Comparator.comparingInt(Instruction::getProbeIndex)).get().getProbeIndex();
                                 int mergeProbeStart = mergeInstructionMap.values().stream().filter(i -> i.getProbeIndex() >= 0).min(Comparator.comparingInt(Instruction::getProbeIndex)).get().getProbeIndex();
                                 int mergeProbeEnd = mergeInstructionMap.values().stream().filter(i -> i.getProbeIndex() >= 0).max(Comparator.comparingInt(Instruction::getProbeIndex)).get().getProbeIndex();
-                                System.out.printf("coverage name: %s probeStart: %d probeEnd: %d mergeProbeStart: %d mergeProbeEnd: %d\n", coverageName, probeStart, probeEnd, mergeProbeStart, mergeProbeEnd);
-                                if(probes == null){
-                                    probes = new boolean[probeEnd - probeStart + 1];
-                                }
+                                System.out.printf("coverageName: %s name: %s probeStart: %d probeEnd: %d mergeProbeStart: %d mergeProbeEnd: %d\n", coverageName, name, probeStart, probeEnd, mergeProbeStart, mergeProbeEnd);
                                 //jacoco是以方法级别进行插桩的，所以理论上同个方法的探针的长度是一样的
                                 assert probeEnd - probeStart == mergeProbeEnd - mergeProbeStart;
-                                System.out.printf("coverage name: %s mergeProbesMap: %b\n", coverageName, mergeProbesMap != null);
+                                System.out.printf("coverageName: %s name: %s mergeProbesMap: %b\n", coverageName, name, mergeProbesMap != null);
                                 if (mergeProbesMap != null) {
-                                    System.out.printf("coverage name: %s mergeProbesMap containsKey: %b\n", coverageName, mergeProbesMap.containsKey(coverageName));
+                                    System.out.printf("coverageName: %s name: %s mergeProbesMap containsKey: %b\n", coverageName, name, mergeProbesMap.containsKey(coverageName));
                                 }
                                 if (mergeProbesMap != null && mergeProbesMap.containsKey(coverageName)) {
-                                    System.out.printf("coverage name: %s merge probe\n", coverageName);
+                                    System.out.printf("coverageName: %s name: %s merge probe\n", coverageName, name);
                                     boolean[] mergeProbes = mergeProbesMap.get(coverageName);
                                     if (mergeProbes != null) {
+                                        if(probes == null){
+                                            probes = new boolean[mergeProbes.length];
+                                        }
                                         int currentIndex = mergeProbeStart;
-                                        System.out.printf("coverage name: %s currentIndex: %s mergeProbes: %s\n", coverageName, currentIndex, mergeProbes.length);
+                                        System.out.printf("coverageName: %s name: %s currentIndex: %s mergeProbes: %s\n", coverageName, name, currentIndex, mergeProbes.length);
                                         for (int k = probeStart; k < probeEnd + 1; k++) {
                                             if (mergeProbes[currentIndex]) {
                                                 probes[k] = true;
@@ -257,13 +259,13 @@ public class ClassAnalyzer extends ClassProbesVisitor
                                             currentIndex++;
                                         }
                                     } else {
-                                        System.out.printf("coverage name: %s mergeProbes is null\n", coverageName);
+                                        System.out.printf("coverageName: %s name: %s mergeProbes is null\n", coverageName, name);
                                     }
                                 }
                             }
                             //合并指令
                             for (AbstractInsnNode key : nowInstructions.keySet()) {
-                                System.out.printf("coverage name: %s key\n", coverageName);
+                                System.out.printf("coverageName: %s name: %s key\n", coverageName, name);
                                 Instruction instruction = nowInstructions.get(key);
                                 //合并指令
                                 Instruction other = mergeInstructionMap.get(instruction.getSign());
