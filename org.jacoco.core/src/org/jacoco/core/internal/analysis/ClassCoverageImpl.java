@@ -63,7 +63,6 @@ public class ClassCoverageImpl extends SourceNodeImpl
 	public void addMethod(final IMethodCoverage method) {
 		this.methods.add(method);
 		increment(method);
-        System.out.printf("methodName: %s desc: %s getCoveredCount: %d\n", method.getName(), method.getDesc(), methodCounter.getCoveredCount());
 		// Class is considered as covered when at least one method is covered:
 		if (methodCounter.getCoveredCount() > 0) {
 			this.classCounter = CounterImpl.COUNTER_0_1;

@@ -49,20 +49,20 @@ public class CoverageBuilder implements ICoverageVisitor {
 
     private Map<String, ISourceFileCoverage> sourcefiles;
 
-    // create by xulingjian 2024-10-21
+    
     public DiffCodeDto diffCodes;
 
-    // create by xulingjian 2024-10-21
+    
     public boolean isOnlyAnaly() {
         return onlyAnaly;
     }
 
-    // create by xulingjian 2024-10-21
+    
     public void setOnlyAnaly(boolean onlyAnaly) {
         this.onlyAnaly = onlyAnaly;
     }
 
-    // create by xulingjian 2024-10-21
+    
     public boolean onlyAnaly = false;
 
     /**
@@ -73,7 +73,7 @@ public class CoverageBuilder implements ICoverageVisitor {
         this.sourcefiles = new HashMap<String, ISourceFileCoverage>();
     }
 
-    // create by xulingjian 2024-10-21
+    
     public CoverageBuilder(String classList) {
         this.classes = new HashMap<String, IClassCoverage>();
         this.sourcefiles = new HashMap<String, ISourceFileCoverage>();
@@ -85,12 +85,12 @@ public class CoverageBuilder implements ICoverageVisitor {
         }
     }
 
-    // create by xulingjian 2024-10-21
+    
     public DiffCodeDto getDiffCodes() {
         return diffCodes;
     }
 
-    // create by xulingjian 2024-10-21
+    
     public void setDiffCodes(DiffCodeDto diffCodes) {
         this.diffCodes = diffCodes;
     }

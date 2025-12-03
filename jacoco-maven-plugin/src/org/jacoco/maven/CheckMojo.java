@@ -146,7 +146,7 @@ public class CheckMojo extends AbstractJacocoMojo implements IViolationsOutput {
 
     private boolean violations;
 
-    // create by xulingjian 2024-10-21
+    
     @Parameter(property = "jacoco.diffCodeFile", defaultValue = "${project.basedir}/diffCodeFile.json")
     String diffCodeFile;
 
@@ -179,7 +179,7 @@ public class CheckMojo extends AbstractJacocoMojo implements IViolationsOutput {
 
 //        final ReportSupport support = new ReportSupport(getLog());
 
-        // create by xulingjian 2024-10-21
+        
         final ReportSupport support = new ReportSupport(getLog(), JsonReadUtil.readJsonToString(this.diffCodeFile));
 
         final List<Rule> checkerrules = new ArrayList<Rule>();

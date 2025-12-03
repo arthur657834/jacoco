@@ -99,7 +99,6 @@ public class ClassProbesAdapter extends ClassVisitor
                     } else {
                         Boolean checkRes = CodeDiffUtil.checkMethodIn(this.name, name, desc,
                                 diffCodes.getIncludes());
-                        System.out.printf("name: %s desc: %s checkRes: %b\n", name, desc, checkRes);
                         if (checkRes) {
                             methodProbes1 = mv;
                         } else {
@@ -172,7 +171,7 @@ public class ClassProbesAdapter extends ClassVisitor
         return counter++;
     }
 
-    // create by xulingjian 2024-10-21
+    
     public int getId() {
         return counter;
     }

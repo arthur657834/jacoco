@@ -99,7 +99,7 @@ public abstract class AbstractReportMojo extends AbstractMojo
     @Parameter(property = "project", readonly = true)
     MavenProject project;
 
-    // create by xulingjian 2024-10-21
+    
     @Parameter(property = "jacoco.diffCodeFile", defaultValue = "${project.basedir}/diffCodeFile.json")
     String diffCodeFile;
 
@@ -193,7 +193,7 @@ public abstract class AbstractReportMojo extends AbstractMojo
             throws MavenReportException {
         try {
 //            final ReportSupport support = new ReportSupport(getLog());
-            // create by xulingjian 2024-10-21
+            
             final ReportSupport support = new ReportSupport(getLog(), JsonReadUtil.readJsonToString(this.diffCodeFile));
             loadExecutionData(support);
             addFormatters(support, locale);

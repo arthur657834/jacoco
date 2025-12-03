@@ -54,7 +54,6 @@ public class CodeDiffUtil {
                 || null == className) {
             return Boolean.FALSE;
         }
-        System.out.println("className:" + className + "methodName0:" + methodName);
         ClassInfoDto classInfoDto = classInfos.stream()
                 .filter(c -> className.equals(c.getClassFile())
                         || className.split("\\$")[0].equals(c.getClassFile()))
@@ -62,7 +61,6 @@ public class CodeDiffUtil {
         if (null == classInfoDto) {
             return Boolean.FALSE;
         }
-        System.out.println("methodName1:" + methodName);
         // 如果是新增类，不用匹配方法，直接运行
         if (OPERATE_ADD.equals(classInfoDto.getType())) {
             return Boolean.TRUE;
@@ -75,9 +73,7 @@ public class CodeDiffUtil {
         }
         // 匹配了方法，参数也需要校验
         return classInfoDto.getMethodInfos().stream().anyMatch(m -> {
-            System.out.println("methodName:" + methodName + " m.methodName:" + m.getMethodName());
             if (methodName.equals(m.getMethodName())) {
-                System.out.println("methodName:" + methodName + " parameters:" + m.getParameters());
                 return m.getParameters() == null ? Boolean.TRUE : checkParamsIn(m.getParameters(), desc);
                 // lambda表示式匹配
             } else if (methodName.contains("lambda$")
@@ -100,20 +96,17 @@ public class CodeDiffUtil {
     public static Boolean checkParamsIn(List<String> params, String desc) {
         // 解析ASM获取的参数
         Type[] argumentTypes = Type.getArgumentTypes(desc);
-        System.out.println("argumentTypes size:" + argumentTypes.length);
         // 说明是无参数的方法，匹配成功
         if (params.isEmpty() && argumentTypes.length == 0) {
             return Boolean.TRUE;
         }
         String[] diffParams = params.toArray(new String[params.size()]);
-        System.out.println("diffParams:" + diffParams);
         // 只有参数数量完全相等才做下一次比较，Type格式：I C Ljava/lang/String;
         if (diffParams.length > 0
                 && argumentTypes.length == diffParams.length) {
             for (int i = 0; i < argumentTypes.length; i++) {
                 // 去掉包名只保留最后一位匹配,getClassName格式： int java/lang/String
                 String[] args = argumentTypes[i].getClassName().split("\\.");
-                System.out.println("args:" + args + " class:" + argumentTypes[i].getClassName());
                 String arg = args[args.length - 1];
                 // 如果参数是内部类类型，再截取下
                 if (arg.contains("$")) {

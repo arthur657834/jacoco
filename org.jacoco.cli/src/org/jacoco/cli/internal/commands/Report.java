@@ -73,29 +73,29 @@ public class Report extends Command {
     @Option(name = "--html", usage = "output directory for the HTML report", metaVar = "<dir>")
     File html;
 
-    // create by xulingjian 2024-10-21
+    
     @Option(name = "--diffCode", usage = "input String for diff", metaVar = "<file>")
     String diffCode;
 
-    // create by xulingjian 2024-10-21
+    
     @Option(name = "--diffCodeFiles", usage = "input file for diff", metaVar = "<path>")
     String diffCodeFiles;
 
-    // create by xulingjian 2024-10-21
+    
     @Option(name = "--onlyMergeExec", usage = "only merger exec,not create report", metaVar = "<charset>")
     String onlyMergeExec;
 
-    // create by xulingjian 2024-10-21
+    
     // 多版本覆盖率合并用，需要合并版本的exec文件
     @Option(name = "--mergeExecfilepath", usage = "need to merge execfile", metaVar = "<path>")
     List<File> mergeExecfiles = new ArrayList<File>();
 
-    // create by xulingjian 2024-10-21
+    
     // 需要合并版本的class文件，插桩必须要用到老的class文件
     @Option(name = "--mergeClassfilepath", usage = "location of Java class files need to merge", metaVar = "<path>")
     List<File> mergeClassfiles = new ArrayList<File>();
 
-    // create by xulingjian 2024-10-21
+    
     @Option(name = "--mergeExec", usage = "output file for the finished merge exec file ", metaVar = "<charset>")
     String mergeExec;
 
@@ -114,7 +114,7 @@ public class Report extends Command {
 //        return 0;
 //    }
 
-    // create by xulingjian 2024-10-21
+    
     @Override
     public int execute(final PrintWriter out, final PrintWriter err) throws IOException {
         // 需要合并exec文件，同个方法就合并方法的指令的覆盖率
@@ -142,7 +142,7 @@ public class Report extends Command {
         return 0;
     }
 
-    // create by xulingjian 2024-10-21
+    
 
     /**
      * 加载exec文件
@@ -169,8 +169,6 @@ public class Report extends Command {
     private IBundleCoverage analyze(final ExecutionDataStore data,
                                     final PrintWriter out) throws IOException {
 //        final CoverageBuilder builder = new CoverageBuilder();
-
-        // create by xulingjian 2024-10-21 start
         CoverageBuilder builder;
         // 如果有增量参数将其设置进去
         if (null != this.diffCodeFiles) {
@@ -181,7 +179,7 @@ public class Report extends Command {
         } else {
             builder = new CoverageBuilder();
         }
-        // create by xulingjian 2024-10-21 end
+        
 
         final Analyzer analyzer = new Analyzer(data, builder);
         for (final File f : classfiles) {
@@ -191,7 +189,7 @@ public class Report extends Command {
         return builder.getBundle(name);
     }
 
-    // create by xulingjian 2024-10-21
+    
     private IBundleCoverage analyze(final ExecutionDataStore data,
                                     final PrintWriter out, List<File> classfiles, boolean isOnlyAnaly)
             throws IOException {

@@ -24,6 +24,6 @@ public interface IProbeIdGenerator {
      */
     int nextId();
 
-    // create by xulingjian 2024-10-21
+    
     int getId();
 }

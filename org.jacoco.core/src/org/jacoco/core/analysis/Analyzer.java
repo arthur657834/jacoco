@@ -58,7 +58,7 @@ public class Analyzer {
 
     private final StringPool stringPool;
 
-    // create by xulingjian 2024-10-21
+    
     private DiffCodeDto diffCodes;
 
     /**
@@ -90,7 +90,7 @@ public class Analyzer {
         if (data == null) {
 //            probes = null;
 //            noMatch = executionData.contains(className);
-            // create by xulingjian 2024-10-21 start
+            
             int probeCount = ProbeArrayStrategyFactory.getProbeCounter(reader)
                     .getCount();
             probes = new boolean[probeCount];
@@ -112,7 +112,7 @@ public class Analyzer {
 //                coverageVisitor.visitCoverage(coverage);
 //            }
 //        };
-        // create by xulingjian 2024-10-21 start
+        
         final ClassAnalyzer analyzer = new ClassAnalyzer(coverage, probes,
                 stringPool, this.diffCodes, onlyAnaly) {
             @Override
@@ -124,7 +124,7 @@ public class Analyzer {
                 coverageVisitor.visitCoverage(coverage);
             }
         };
-        // create by xulingjian 2024-10-21 end
+        
         return new ClassProbesAdapter(analyzer, false);
     }
 
@@ -139,7 +139,7 @@ public class Analyzer {
         }
 
         boolean isOnlyAnaly = false;
-        // create by xulingjian 2024-10-21 start
+        
         if (this.coverageVisitor instanceof CoverageBuilder) {
             this.diffCodes = ((CoverageBuilder) this.coverageVisitor)
                     .getDiffCodes();
@@ -179,7 +179,7 @@ public class Analyzer {
 		// visitEnd钩子方法里面实现的是coverageVisitor.visitCoverage(coverage);
 		// 所以先走的ClassAnalyzer的方法，在ClassAnalyzer调用visitEnd的时候调用coverageVisitor.visitCoverage(coverage);
 		// ClassAnalyzer的CoverageBuilder builder最终分析指令覆盖级别信息，再推理方法更大的级别
-        // create by xulingjian 2024-10-21 end
+        
         final ClassVisitor visitor = createAnalyzingVisitor(classId,
                 reader.getClassName(), isOnlyAnaly, reader);
         // 重点，开始解析类里面的方法，逐个方法遍历

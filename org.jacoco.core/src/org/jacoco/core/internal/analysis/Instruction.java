@@ -67,20 +67,20 @@ public class Instruction {
 
     private int predecessorBranch;
 
-    // create by xulingjian 2024-10-21
+    
     // 指令签名，判断method内的指令是否同一个指令，line不考虑，只考虑指令操作码，值和顺序是否一样
     private String sign;
 
-    // create by xulingjian 2024-10-21
+    
     // 记录探针的probeId，合并的时候可以做到合并到exec文件，在每次计算合并计算完成时候保留exec文件即可，用来一下次合并
     private int probeIndex;
 
-    // create by xulingjian 2024-10-21
+    
     public int getProbeIndex() {
         return probeIndex;
     }
 
-    // create by xulingjian 2024-10-21
+    
     public void setProbeIndex(int probeIndex) {
         this.probeIndex = probeIndex;
     }
@@ -97,7 +97,7 @@ public class Instruction {
         this.coveredBranches = new BitSet();
     }
 
-    // create by xulingjian 2024-10-21
+    
     public Instruction(final int line, String sign) {
         this.line = line;
         this.branches = 0;
@@ -105,7 +105,7 @@ public class Instruction {
         this.sign = sign;
     }
 
-    // create by xulingjian 2024-10-21
+    
     public String getSign() {
         return sign;
     }
@@ -186,7 +186,7 @@ public class Instruction {
         return result;
     }
 
-    // create by xulingjian 2024-10-21
+    
     public Instruction mergeNew(final Instruction other) {
         this.coveredBranches.or(other.coveredBranches);
         return this;

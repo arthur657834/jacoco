@@ -121,7 +121,7 @@ class InstructionsBuilder {
         instructions.put(node, insn);
     }
 
-    // create by xulingjian 2024-10-21
+    
     void addInstruction(final AbstractInsnNode node, String sign, int probeId) {
         final Instruction insn = new Instruction(currentLine, sign);
         insn.setProbeIndex(probeId);
@@ -186,7 +186,7 @@ class InstructionsBuilder {
         return instructions;
     }
 
-    // create by xulingjian 2024-10-21
+    
     Map<AbstractInsnNode, Instruction> getInstructionsNotWireJumps() {
         return instructions;
     }

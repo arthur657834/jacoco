@@ -31,7 +31,7 @@ public final class MethodProbesAdapter extends MethodVisitor {
 
     private final IProbeIdGenerator idGenerator;
 
-    // create by xulingjian 2024-10-21
+    
     public IProbeIdGenerator getIdGenerator() {
         return idGenerator;
     }

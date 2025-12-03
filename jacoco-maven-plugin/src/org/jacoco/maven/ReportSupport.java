@@ -58,7 +58,7 @@ final class ReportSupport {
     private final ExecFileLoader loader;
     private final List<IReportVisitor> formatters;
 
-    // create by xulingjian 2024-10-21
+    
     private String diffMethods;
 
     /**
@@ -73,7 +73,7 @@ final class ReportSupport {
     }
 
 
-    // create by xulingjian 2024-10-21
+    
     public ReportSupport(final Log log, final String diffMethods) {
         this.log = log;
         this.loader = new ExecFileLoader();
@@ -153,7 +153,7 @@ final class ReportSupport {
                                 final ISourceFileLocator locator) throws IOException {
 //        final CoverageBuilder builder = new CoverageBuilder();
 
-        // create by xulingjian 2024-10-21
+        
         CoverageBuilder builder;
         if (null != diffMethods && !diffMethods.isEmpty()) {
             builder = new CoverageBuilder(diffMethods);

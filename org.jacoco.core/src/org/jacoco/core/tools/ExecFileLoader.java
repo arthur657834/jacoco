@@ -37,12 +37,12 @@ public class ExecFileLoader {
     private final SessionInfoStore sessionInfos;
     private final ExecutionDataStore executionData;
 
-    // create by xulingjian 2024-10-21
+    
     // 从exce文件解析的method指令数据，合并此exec的数据
     // 类的方法级指令信息，key为类全称，value为方法签名
     public static ThreadLocal<Map<String, Map<String, Map<String, Instruction>>>> instrunctionsThreadLocal = new ThreadLocal<>();
 
-    // create by xulingjian 2024-10-21
+    
     public static ThreadLocal<Map<String, boolean[]>> probesMap = new ThreadLocal<>();
 
     /**
